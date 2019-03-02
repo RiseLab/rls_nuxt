@@ -1,99 +1,87 @@
 <template>
-  <v-app dark>
-    <v-navigation-drawer
-      :mini-variant.sync="miniVariant"
-      :clipped="clipped"
-      v-model="drawer"
-      fixed
-      app
-    >
-      <v-list>
-        <v-list-tile
-          router
-          :to="item.to"
-          :key="i"
-          v-for="(item, i) in items"
-          exact
-        >
-          <v-list-tile-action>
-            <v-icon v-html="item.icon"></v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            <v-list-tile-title v-text="item.title"></v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-      </v-list>
-    </v-navigation-drawer>
-    <v-toolbar fixed app :clipped-left="clipped">
-      <v-toolbar-side-icon @click="drawer = !drawer"></v-toolbar-side-icon>
-      <v-btn
-        icon
-        @click.stop="miniVariant = !miniVariant"
-      >
-        <v-icon v-html="miniVariant ? 'chevron_right' : 'chevron_left'"></v-icon>
-      </v-btn>
-      <v-btn
-        icon
-        @click.stop="clipped = !clipped"
-      >
-        <v-icon>web</v-icon>
-      </v-btn>
-      <v-btn
-        icon
-        @click.stop="fixed = !fixed"
-      >
-        <v-icon>remove</v-icon>
-      </v-btn>
-      <v-toolbar-title v-text="title"></v-toolbar-title>
+  <v-app>
+    <navigation :navigation="navigation" />
+
+    <v-toolbar clipped-left fixed app>
+      <v-toolbar-side-icon @click="navigation.show = !navigation.show"></v-toolbar-side-icon>
+      <v-toolbar-title class="headline text-uppercase ml-0">
+        <span>RL</span><span class="font-weight-light">STORE</span>
+      </v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn
-        icon
-        @click.stop="rightDrawer = !rightDrawer"
-      >
-        <v-icon>menu</v-icon>
-      </v-btn>
+      <v-chip class="mr-2">
+        <v-avatar color="grey">
+          <v-icon small color="white">location_city</v-icon>
+        </v-avatar>
+        <span class="pr-1">Пермь</span>
+      </v-chip>
+      <v-chip class="mr-2">
+        <v-avatar color="grey">
+          <v-icon small color="white">phone_iphone</v-icon>
+        </v-avatar>
+        <span class="pr-1">+7 (919) 499-71-24</span>
+      </v-chip>
+      <cart :cart="cart"/>
     </v-toolbar>
-    <v-content>
-      <v-container>
-        <nuxt />
-      </v-container>
+
+    <v-content v-scroll="onScroll">
+      <nuxt />
     </v-content>
-    <v-navigation-drawer
-      temporary
-      :right="right"
-      v-model="rightDrawer"
-      fixed
-    >
-      <v-list>
-        <v-list-tile @click.native="right = !right">
-          <v-list-tile-action>
-            <v-icon light>compare_arrows</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-title>Switch drawer (click me)</v-list-tile-title>
-        </v-list-tile>
-      </v-list>
-    </v-navigation-drawer>
-    <v-footer :fixed="fixed" app>
-      <span>&copy; {{ new Date().getFullYear() }}</span>
+
+    <v-footer inset fixed app>
+      <v-spacer></v-spacer>
+      <span class="px-4">RiseLab &copy; {{ new Date().getFullYear() }}</span>
     </v-footer>
+
+    <v-fab-transition>
+      <v-btn color="light-blue" dark fixed bottom right fab class="mb-4" v-show="scrollTop" @click="$vuetify.goTo(0)">
+        <v-icon>expand_less</v-icon>
+      </v-btn>
+    </v-fab-transition>
   </v-app>
 </template>
 
 <script>
+  import Cart from '../components/Cart'
+  import Navigation from '../components/Navigation'
   export default {
+    components: { Navigation, Cart },
     data () {
       return {
-        clipped: false,
-        drawer: true,
-        fixed: false,
-        items: [
-          { icon: 'apps', title: 'Welcome', to: '/' },
-          { icon: 'bubble_chart', title: 'Inspire', to: '/inspire' }
-        ],
-        miniVariant: false,
-        right: true,
-        rightDrawer: false,
-        title: 'Vuetify.js'
+        navigation: {
+          show: true,
+          items: [
+            { title: 'Главная', icon: 'store', to: '/' },
+            {
+              icon: 'category',
+              title: 'Каталог',
+              to: '/catalog',
+              open: true,
+              children: this.$store.state.categories
+            },
+            {
+              icon: 'info',
+              title: 'Информация',
+              to: '/info',
+              open: false,
+              children: [
+                { title: 'Условия покупки', to: '/conditions' },
+                { title: 'О магазине', to: '/about' },
+                { title: 'Контакты', to: '/contacts' }
+              ]
+            },
+            { icon: 'bubble_chart', title: 'Inspire', to: '/inspire' }
+          ]
+        },
+        scrollTop: false,
+        cart: [
+          {},
+          {}
+        ]
+      }
+    },
+    methods: {
+      onScroll () {
+        this.scrollTop = window.pageYOffset >= 600
       }
     }
   }
